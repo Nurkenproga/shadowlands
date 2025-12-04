@@ -1,93 +1,105 @@
 # Feature Specification: [FEATURE NAME]
 
 **Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
+# Feature Specification: World Switching Mechanic
+
+**Feature Branch**: `001-world-switch`  
+**Created**: 2025-12-04  
 **Status**: Draft  
-**Input**: User description: "$ARGUMENTS"
+**Input**: User description: "Implement core mechanic to switch between Real and Shadow worlds for player and level objects."
 
 ## User Scenarios & Testing *(mandatory)*
 
-<!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
--->
+### User Story 1 - Switch Worlds (Priority: P1)
 
-### User Story 1 - [Brief Title] (Priority: P1)
+As a player, I want to press a button to switch between Real and Shadow worlds, so that I can access platforms, avoid hazards, and progress through levels.
 
-[Describe this user journey in plain language]
+**Why this priority**: This is the core gameplay mechanic; without it, the game is unplayable.
 
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+**Independent Test**: Can be fully tested by pressing the switch button in a prototype level and observing that all world-specific objects toggle correctly.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** the player is in the Real world, **When** the switch button is pressed, **Then** all Shadow-only objects become active and Real-only objects deactivate.
+2. **Given** the player is in the Shadow world, **When** the switch button is pressed, **Then** all Real-only objects become active and Shadow-only objects deactivate.
 
 ---
 
-### User Story 2 - [Brief Title] (Priority: P2)
+### User Story 2 - Interact with World-Specific Platforms (Priority: P2)
 
-[Describe this user journey in plain language]
+As a player, I want to land on platforms that exist only in one world, so that I can navigate levels safely.
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: Necessary to test level traversal and reinforce the switch mechanic.
 
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: Place the player above a Shadow-only platform in Real world, switch, and verify they can land safely.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** the player is above a Shadow-only platform in the Real world, **When** the player switches, **Then** the player lands on the platform correctly.
+2. **Given** the player is on a Shadow platform, **When** they switch to Real, **Then** the platform disappears and the player falls if no other support exists.
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
+### User Story 3 - Avoid World-Specific Hazards (Priority: P2)
 
-[Describe this user journey in plain language]
+As a player, I want hazards to appear only in one world, so I can strategize when to switch.
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: Adds challenge and depth to gameplay.
 
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: Place a Real-only spike hazard; switching to Shadow world should make it inactive.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** the player approaches a Real-only hazard, **When** they switch to Shadow, **Then** the hazard becomes inactive.
+2. **Given** the player switches back to Real, **Then** the hazard reactivates.
 
 ---
-
-[Add more user stories as needed, each with an assigned priority]
 
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+- What happens if the player switches while falling?
+- How does the system handle objects that exist in both worlds?
+- What if a platform disappears under the player mid-air?
+- Rapid repeated switching (spam test) — must be deterministic and safe.
 
 ## Requirements *(mandatory)*
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
+- **FR-001**: System MUST toggle all objects between Real and Shadow worlds on player input.
+- **FR-002**: Player MUST maintain momentum during world switch.
+- **FR-003**: Platforms and hazards MUST activate/deactivate according to world assignment.
+- **FR-004**: `ShadowWorldManager` MUST act as single source of truth for world state.
+- **FR-005**: System MUST prevent switching if it causes player clipping or fatal errors (safety checks/event veto).
+
+**Optional / Needs Clarification**:
+
+- **FR-006**: Visual or audio feedback on switch [NEEDS CLARIFICATION: FX type and intensity].
+- **FR-007**: Persistence rules for temporary objects between worlds [NEEDS CLARIFICATION].
+
+### Key Entities *(include if feature involves data)*
+
+- **Player**: Attributes include `position`, `velocity`, `currentWorld`, `isGrounded`, `jumpState`.
+- **ShadowWorldManager**: Tracks global world state, exposes `SwitchWorld()` API, broadcasts events (e.g., `OnWorldChanged`).
+- **WorldObject (abstract/base)**: Base class for platforms, hazards, enemies; includes `isShadowObject` / `isRealObject` flags and `OnWorldChanged` handler.
+
+## Success Criteria *(mandatory)*
+
+### Measurable Outcomes
+
+- **SC-001**: 100% of world-specific objects toggle correctly on switch (verified by automated PlayMode tests).
+- **SC-002**: Player maintains position and momentum after switching within acceptable delta (e.g., position ±0.05 units, velocity preserved to within 95%).
+- **SC-003**: No crashes or physics errors during rapid switching (tested up to 5 switches/second).
+- **SC-004**: Prototype level can be completed using only the switch mechanic.
+
+---
+
+Notes:
+
+- Implementations must follow the Shadow Swap Constitution: Mechanic-First Design, Deterministic Behavior, Single Toggle Source of Truth, Prototype-First.
+- Use `ScriptableObject`s for public gameplay parameters and `SceneController` for scene lifecycle management.
+
+Generated for: Shadow Swap — World Switching Mechanic
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
 *Example of marking unclear requirements:*
